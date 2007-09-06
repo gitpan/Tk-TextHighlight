@@ -1,7 +1,7 @@
 package Tk::ROTextHighlight;
 
 use vars qw($VERSION);
-$VERSION = '1.0.1';
+$VERSION = '1.0.2';
 use base qw(Tk::Derived Tk::ROText);
 use strict;
 use Storable;

@@ -101,3 +101,9 @@ Tk::CodeText module changes log
 	2)  Fixed bug that caused infinite recursion when trying to start up 
 	with the "None" highlight option.  See TextHighlight.pm and 
 	ROTextHighlight.pm (line 244).
+
+05 September 2007
+	Update to version 1.0.2
+	1)  Fix all internal packages to be under Tk::TextHighlight::*" to 
+	fix "Unauthorized" Package namespace trespassing in CPAN.
+	2)  Improve POD documentation.

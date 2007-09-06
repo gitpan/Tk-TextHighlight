@@ -10,16 +10,22 @@ Tk::ROTextHighlight - a Read-only Text widget with syntax highlighting capabilit
 =over 4
 
  use Tk;
+ my $haveKateInstalled = 0;
+ eval "use Syntax::Highlight::Engine::Kate; \$haveKateInstalled = 1; 1";
+
  require Tk::TextHighlight;
 
  my $m = new MainWindow;
 
- my $e = $m->Scrolled('TextHighlight',
-    -disablemenu => 1,
-    -syntax => 'Perl',
-    -scrollbars => 'se',
- )->pack(-expand => 1, -fill => 'both');
+ my $e = $m->Scrolled("TextHighlight",
+    -syntax => "Perl",
+    -scrollbars => "se",
+ )->pack(-expand => 1, -fill => "both");
 
+ if ($haveKateInstalled) {
+  my ($sections, $kateExtensions) = $e->fetchKateInfo;
+  $e->addKate2ViewMenu($sections);
+ }
  $m->configure(-menu => $e->menu);
  $m->MainLoop;
 
@@ -32,12 +38,15 @@ syntax highlighting, methods are provided for commenting and uncommenting
 as well as indenting and unindenting a selected area, matching pairs of braces, brackets and
 brackets and curlies and automatic indenting of new lines.
 
+If you want your widget to be read-only, then B<require Tk::ROTextHighlight>, which 
+is based on B<Tk::ROText> instead of B<Tk::TextUndo>.
+
 Syntax highlighting is done through a plugin approach. Adding languages 
 is a matter of writing plugin modules. Theoretically this is not limited to programming languages. 
 The plugin approach could also provide the possibility for grammar or spell checking in spoken 
 languages.
 
-Currently there is support for B<Bash>, B<HTML>, B<Perl>, B<Pod>, and B<Xresources>.
+Currently there is support for B<Bash>, B<HTML>, B<Perl>, B<Pod>, B<Kate>, and B<Xresources>.
 
 =head1 OPTIONS
 
@@ -142,8 +151,11 @@ in the language modules will be used.
 
 
 Specifies the language for highlighting. At this moment the possible
-values are B<None>, B<HTML>, B<Perl>, B<Pod> and B<Xresources>. 
+values are B<None>, B<HTML>, B<Perl>, B<Pod> B<Kate:Language>, and B<Xresources>. 
 By default B<None>
+
+If B<Syntax::Highlight::Engine::Kate> is installed, you may specify any language 
+that the B<Kate> syntax highlight engine supports.
 
 Alternatively it is possible to specify a reference to your independent plugin.
 
@@ -196,7 +208,7 @@ Don't show the B<Rules Editor> option in the B<View> submenu of the right-click 
 
 =item Switch: B<-noRulesMenu>
 
-Don't show any of the CodeText menu items (combines B<-noSyntaxMenu>, 
+Don't show any of the TextHighlight menu items (combines B<-noSyntaxMenu>, 
 B<-noRulesEditMenu>, and B<-noSaveRulesMenu> options.
 
 =back
@@ -310,6 +322,27 @@ Unindent currently selected text.
 =item B<setRule(rulename,colorattribute,color)>
 
 Allows altering of individual rules by the programmer.
+
+=item B<fetchKateInfo>
+
+Fetches 3 hashrefs containing information about the installed Kate highlight 
+engine (if installed).  The three hashrefs contain in order:  The first can be 
+passed to the B<addkate2viewmenu()> method to add the B<Kate> languages to the 
+Syntax.View menu.  the keys are "Kate::language" and the values are what's 
+needed to instantiate Kate for that language.  the 2nd is a list of file-
+extension pattern suitable for matching against file-names and the values are 
+the reccomended Kate language for that file-extension.  It will return 
+B<(undef, undef, undef)>  if B<Kate> is not installed.
+
+=item B<addKate2ViewMenu($sections)>
+
+Inserts the list of B<Kate>-supported languages to the widget's Syntax.View 
+right-mousebutton popup menu along with the basic TextHight-supported choices. 
+These choices can then be selected to change the current language-highlighting 
+used in the text in the widget.  B<$sections> is a hash-ref normally returned 
+as the 1st item in the list returned by B<fetchKateInfo>.  NOTE:  No menu 
+items will be added if B<Kate> is not installed or if B<-noRulesMenu> or 
+B<-noSyntaxMenu> is set!
 
 =back
 
@@ -535,11 +568,12 @@ sample of code that you used for testing.
 
 =over 4
 
-=item Jim Turner.  
+=item Jim Turner (turnerjw784 - att.symbol.thingy - yahoo.com).  
 
-This is a derived work from Tk::CodeText, by Hans Jeuken (haje@toneel.demon.nl)
+This is a derived work from Tk::CodeText, by Hans Jeuken (haje - att.symbol.thingy - toneel.demon.nl)
 
-Thanks go to Mr. Hans Jeuken for his great work in making this possible.
+Thanks go to Mr. Hans Jeuken for his great work in making this and the Kate 
+modules possible.  He did the hard work!
 
 =back
 
@@ -562,6 +596,8 @@ Unknown. If you find any, please contact the author.
 =item The sample files in the test suite should be set up so that conformity
 with the language specification can actually be verified.
 
+=item Speed up the highlighting process by optimizing the re-highlighting process.
+
 =back
 
 =cut
@@ -571,7 +607,7 @@ with the language specification can actually be verified.
 =over 4
 
 =item B<Tk::Text>, B<Tk::TextUndo>, B<Tk::Text::SuperText>, B<Tk::TextHighlight::None>, B<Tk::TextHighlight::Perl>
-B<Tk::TextHighlight::HTML>, B<Tk::TextHighlight::Template>, B<Tk::TextHighlight::Bash>
+B<Tk::TextHighlight::HTML>, B<Tk::TextHighlight::Template>, B<Tk::TextHighlight::Bash>, B<Tk::CodeText>
 
 =back
 

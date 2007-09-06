@@ -1,5 +1,5 @@
 {
-	package Tk::TBrowseEntry;
+	package Tk::TextHighlight::TBrowseEntry;
 	use base qw(Tk::Derived Tk::BrowseEntry);
 	Construct Tk::Widget 'TBrowseEntry';
 	sub LabEntryWidget { "Entry" }
@@ -18,7 +18,7 @@
 }
 
 {
-	package Tk::OptionLine;
+	package Tk::TextHighlight::OptionLine;
 
 	use base qw(Tk::Derived Tk::Frame);
 	
@@ -90,9 +90,9 @@
 }#end of package OptionLine
 
 {
-	package Tk::OptionColor;
+	package Tk::TextHighlight::OptionColor;
 
-	use base qw(Tk::Derived Tk::OptionLine);
+	use base qw(Tk::Derived Tk::TextHighlight::OptionLine);
 	
 	use strict;
 
@@ -159,9 +159,9 @@
 }#end of package OptionColor
 
 {
-	package Tk::OptionFont;
+	package Tk::TextHighlight::OptionFont;
 
-	use base qw(Tk::Derived Tk::OptionLine);
+	use base qw(Tk::Derived Tk::TextHighlight::OptionLine);
 	
 	use strict;
 
@@ -268,7 +268,7 @@
 
 }#end of package OptionFont
 
-package Tk::RulesEditor;
+package Tk::TextHighlight::RulesEditor;
 
 use strict;
 use base qw(Tk::Derived Tk::Toplevel);
