@@ -129,7 +129,7 @@
 .\" ========================================================================
 .\"
 .IX Title "TEXTHIGHLIGHT 1"
-.TH TEXTHIGHLIGHT 1 "2007-09-05" "perl v5.8.7" "User Contributed Perl Documentation"
+.TH TEXTHIGHLIGHT 1 "2008-02-06" "perl v5.8.7" "User Contributed Perl Documentation"
 .SH "NAME"
 Tk::TextHighlight \- a TextUndo widget with syntax highlighting capabilities.
 .PP
@@ -212,6 +212,17 @@ By default \*(L"#\*(R".
 .PD
 Boolean, by default 0. In case you don't want the menu under the
 right mouse button to pop up.
+.IP "Name: \fBhighlightInBackground\fR" 4
+.IX Item "Name: highlightInBackground"
+.PD 0
+.IP "Class: \fBhighlightInBackground\fR" 4
+.IX Item "Class: highlightInBackground"
+.IP "Switch: \fB\-highlightInBackground\fR" 4
+.IX Item "Switch: -highlightInBackground"
+.PD
+Whether or not to do highlighting in background freeing up the mouse and 
+keyboard for most events (experimental).  May be 1 or 0.  Default 0 (Do not 
+highlight in background \- block input until highlighting completed).
 .IP "Name: \fBindentchar\fR" 4
 .IX Item "Name: indentchar"
 .PD 0
@@ -220,7 +231,8 @@ right mouse button to pop up.
 .IP "Switch: \fB\-indentchar\fR" 4
 .IX Item "Switch: -indentchar"
 .PD
-By default \*(L"\et\*(R".
+String to be inserted when the [Tab] key is pressed or when indenting.
+Default \*(L"\et\*(R".
 .IP "Name: \fBmatch\fR" 4
 .IX Item "Name: match"
 .PD 0

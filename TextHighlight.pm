@@ -1,12 +1,14 @@
 package Tk::TextHighlight;
 
 use vars qw($VERSION);
-$VERSION = '1.0.2';
+$VERSION = '1.0.4';
 use base qw(Tk::Derived Tk::TextUndo);
 use strict;
 use Storable;
 use File::Basename;
 
+my $blockHighlight = 0;     #USED TO PREVENT RECURSIVE CALLS TO RE-HIGHLIGHT!
+my $nodoEvent = 0;          #USED TO PREVENT REPEATING (RUN-AWAY) SCROLLING!
 Construct Tk::Widget 'TextHighlight';
 
 sub Populate {
@@ -31,6 +33,7 @@ sub Populate {
 		-noRulesEditMenu => [qw/PASSIVE undef undef/, 0],   #JWT: ADDED FEATURE.
 		-noSaveRulesMenu => [qw/PASSIVE undef undef/, 0],   #JWT: ADDED FOR BACKWARD COMPATABILITY.
 		-noPlugInit => [qw/PASSIVE undef undef/, 0],        #JWT: ADDED FOR BACKWARD COMPATABILITY.
+		-highlightInBackground => [qw/PASSIVE undef undef/, 0],    #JWT: SELF-EXPLANATORY.
 		DEFAULT => [ 'SELF' ],
 	);
 	$cw->bind('<Configure>', sub { $cw->highlightVisual });
@@ -63,6 +66,7 @@ sub ClassInit   #JWT: ADDED FOR VI-LIKE Control-P JUMP TO MATCHING BRACKET FEATU
 
 	# reset default Tk::Text binds
 	$w->bind($class,	'<Control-p>', sub {} );
+	$w->bind($class,	'<Tab>', 'insertTab');    #ADDED TO ALLOW INSERTION OF TABS OR SPACES!
 	return $class;
 }
 
@@ -152,6 +156,8 @@ sub EmptyDocument {
 
 sub highlight {
 	my ($cw, $begin, $end) = @_;
+#	return $begin  if ($blockHighlight);   #PREVENT RECURSIVE CALLING WHILST ALREADY REHIGHLIGHTING!
+	$blockHighlight = 1;
 	if (not defined($end)) { $end = $begin + 1};
 	#save selection and cursor position
 	my @sel = $cw->tagRanges('sel');
@@ -166,6 +172,7 @@ sub highlight {
 #1	if ($sel[0]) {
 #1		$cw->tagRaise('sel');   #JWT:REMOVED 20060703 SO THAT HIGHLIGHTING STAYS ON SELECTED STUFF AFTER SELECTION MOVES OVER UNTAGGED TEXT.
 #1	};
+	$blockHighlight = 0;
 	return $begin;
 }
 
@@ -219,6 +226,8 @@ sub highlightLine {
 			my $tag = shift @h;
 			$cw->tagAdd($tag, "$num.$start", "$num.$pos");
 		};
+		$cw->DoOneEvent(2)  unless ($nodoEvent
+				|| !$cw->cget('-highlightInBackground'));       #DON'T PREVENT USER-INTERACTION WHILE RE-HILIGHTING!
 	};
 	$cli->[$num] = [ $hlt->stateGet ];
 }
@@ -361,6 +370,7 @@ sub highlightPurge {
 
 sub highlightVisual {
 	my $cw = shift;
+	return  if ($blockHighlight);
 	my $end = $cw->visualend;
 	my $col = $cw->cget('-colored');
 	if ($col < $end) {
@@ -671,7 +681,11 @@ sub yview {
 	my @r = ();
 	if (@_) {
 		@r = $cw->SUPER::yview(@_);
-		$cw->highlightVisual;
+		if ($_[1] > 0) {   #ONLY RE-HIGHLIGHT IF SCROLLING DOWN (PREV. LINES ALREADY HIGHLIGHTED)!
+			my ($p) = caller;
+			$nodoEvent = 1  if ($p =~ /scroll/io);   #THIS PREVENTS REPEATING (RUN-AWAY) SCROLLING!
+			$cw->highlightVisual;
+		}
 	} else {
 		@r = $cw->SUPER::yview;
 	}
@@ -689,6 +703,7 @@ sub updateCall {
 	my $cw = shift;
 	my $call = $cw->cget('-updatecall');
 	&$call;
+	$nodoEvent = 0;
 }
 
 sub ViewMenuItems {
@@ -878,6 +893,15 @@ sub addKate2ViewMenu    #ADD ALL KATE-LANGUAGES AS OPTIONS TO THE "View" MENU:
 				-menu => $nextMenu);
 		++$kateIndx  if ($kateIndx =~ /^\d/o);
 	}
+}
+
+sub insertTab
+{
+	my ($w) = @_;
+#	$w->Insert("\t");
+	$w->Insert($w->cget('-indentchar'));
+	$w->focus;
+	$w->break
 }
 
 1;

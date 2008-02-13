@@ -78,13 +78,24 @@ By default "#".
 Boolean, by default 0. In case you don't want the menu under the
 right mouse button to pop up.
 
+=item Name: B<highlightInBackground>
+
+=item Class: B<highlightInBackground>
+
+=item Switch: B<-highlightInBackground>
+
+Whether or not to do highlighting in background freeing up the mouse and 
+keyboard for most events (experimental).  May be 1 or 0.  Default 0 (Do not 
+highlight in background - block input until highlighting completed).
+
 =item Name: B<indentchar>
 
 =item Class: B<Indentchar>
 
 =item Switch: B<-indentchar>
 
-By default "\t".
+String to be inserted when the [Tab] key is pressed or when indenting.
+Default "\t".
 
 =item Name: B<match>
 

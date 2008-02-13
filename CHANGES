@@ -107,3 +107,15 @@ Tk::CodeText module changes log
 	1)  Fix all internal packages to be under Tk::TextHighlight::*" to 
 	fix "Unauthorized" Package namespace trespassing in CPAN.
 	2)  Improve POD documentation.
+
+December 2007
+	Update to version 1.0.3
+	Now will do highlighting somewhat in background freeing up most mouse 
+	and keyboard actions while highlighting.  Also eliminated some redundant 
+	re-highlighting.
+
+06 February 2008
+	Update to version 1.0.4
+	Added binding to <Tab> to cause tab key to insert whatever string 
+	"-indentchar" is set to (default is "\t").  Previously always 
+	inserted "\t".
