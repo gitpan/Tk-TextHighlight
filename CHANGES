@@ -119,3 +119,9 @@ December 2007
 	Added binding to <Tab> to cause tab key to insert whatever string 
 	"-indentchar" is set to (default is "\t").  Previously always 
 	inserted "\t".
+
+28 October 2008
+	Update to version 1.0.5
+	Added configure() function to first check for background changes and 
+	change black, white, and matching rule colors to white or black to 
+	prevent color contrast from making text illegable.

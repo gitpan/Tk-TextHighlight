@@ -1,15 +1,15 @@
-package Tk::TextHighlight;
+package Tk::ROTextHighlight;
 
 use vars qw($VERSION);
-$VERSION = '1.0.4';
-use base qw(Tk::Derived Tk::TextUndo);
+$VERSION = '1.0.5';
+use base qw(Tk::Derived Tk::ROText);
 use strict;
 use Storable;
 use File::Basename;
 
 my $blockHighlight = 0;     #USED TO PREVENT RECURSIVE CALLS TO RE-HIGHLIGHT!
 my $nodoEvent = 0;          #USED TO PREVENT REPEATING (RUN-AWAY) SCROLLING!
-Construct Tk::Widget 'TextHighlight';
+Construct Tk::Widget 'ROTextHighlight';
 
 sub Populate {
 	my ($cw,$args) = @_;
@@ -66,7 +66,6 @@ sub ClassInit   #JWT: ADDED FOR VI-LIKE Control-P JUMP TO MATCHING BRACKET FEATU
 
 	# reset default Tk::Text binds
 	$w->bind($class,	'<Control-p>', sub {} );
-	$w->bind($class,	'<Tab>', 'insertTab');    #ADDED TO ALLOW INSERTION OF TABS OR SPACES!
 	return $class;
 }
 
@@ -893,15 +892,6 @@ sub addKate2ViewMenu    #ADD ALL KATE-LANGUAGES AS OPTIONS TO THE "View" MENU:
 				-menu => $nextMenu);
 		++$kateIndx  if ($kateIndx =~ /^\d/o);
 	}
-}
-
-sub insertTab
-{
-	my ($w) = @_;
-#	$w->Insert("\t");
-	$w->Insert($w->cget('-indentchar'));
-	$w->focus;
-	$w->break
 }
 
 1;

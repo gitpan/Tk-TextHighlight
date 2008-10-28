@@ -1,11 +1,13 @@
-MANIFEST
-Makefile.PL
-demo.pl
-README
 CHANGES
-TextHighlight.pm
-ROTextHighlight.pm
+demo.pl
+Makefile.PL
+MANIFEST
+META.yml
+README
+RulesEditor.pm
 TextHighlight.pod
+lib/Tk/ROTextHighlight.pm
+lib/Tk/TextHighlight.pm
 TextHighlight/Bash.pm
 TextHighlight/HTML.pm
 TextHighlight/Kate.pm
@@ -15,8 +17,6 @@ TextHighlight/PerlCool.pm
 TextHighlight/Template.pm
 TextHighlight/Pod.pm
 TextHighlight/Xresources.pm
-RulesEditor.pm
-Tk::TextHighlight.3
 samples/Bash.test
 samples/HTML.test
 samples/Kate.test
@@ -35,4 +35,3 @@ t/Tk_TextHighlight_Pod.t
 t/Tk_TextHighlight_Template.t
 t/Tk_TextHighlight_Xresources.t
 t/Tk_XDemo.t
-META.yml                                 Module meta-data (added by MakeMaker)

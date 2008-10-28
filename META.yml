@@ -1,11 +1,10 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Tk-TextHighlight
-version:      1.0.4
-version_from: TextHighlight.pm
+version:      1.0.5
+version_from: lib/Tk/TextHighlight.pm
 installdirs:  site
 requires:
-    Syntax::Highlight::Perl:       0
     Tk:                            800.024
 
 distribution_type: module

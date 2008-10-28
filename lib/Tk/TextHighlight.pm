@@ -1,15 +1,15 @@
-package Tk::ROTextHighlight;
+package Tk::TextHighlight;
 
 use vars qw($VERSION);
-$VERSION = '1.0.4';
-use base qw(Tk::Derived Tk::ROText);
+$VERSION = '1.0.5';
+use base qw(Tk::Derived Tk::TextUndo);
 use strict;
 use Storable;
 use File::Basename;
 
 my $blockHighlight = 0;     #USED TO PREVENT RECURSIVE CALLS TO RE-HIGHLIGHT!
 my $nodoEvent = 0;          #USED TO PREVENT REPEATING (RUN-AWAY) SCROLLING!
-Construct Tk::Widget 'ROTextHighlight';
+Construct Tk::Widget 'TextHighlight';
 
 sub Populate {
 	my ($cw,$args) = @_;
@@ -37,9 +37,39 @@ sub Populate {
 		DEFAULT => [ 'SELF' ],
 	);
 	$cw->bind('<Configure>', sub { $cw->highlightVisual });
-	$cw->bind('<Return>', sub { $cw->doAutoIndent });
+	$cw->bind('<Shift-Return>', sub { $cw->doAutoIndent(0) });
+	$cw->bind('<Return>', sub { $cw->doAutoIndent(1) });
 	$cw->markSet('match', '0.0');
 	$cw->bind('<Control-p>', \&jumpToMatchingChar);
+	$cw->bind('<Shift-BackSpace>', \&doShiftBackSpace);   #DOESN'T SEEM TO WORK?!?!?!
+	$cw->bind('<Shift-Tab>', \&deleteToEndofLine);   #DOESN'T SEEM TO WORK?!?!?!
+	$cw->bind('<Shift-Insert>', \&doShiftInsert);   #DOESN'T SEEM TO WORK?!?!?!
+}
+
+sub configure    #ADDED 20081027 TO RE-CHECK RULE COLORS WHEN BACKGROUND CHANGES
+{
+	my $cw = shift;
+	my $plug = $cw->Subwidget('formatter');	
+	if ($plug)
+	{
+		for (my $i=0;$i<$#{_};$i++)
+		{
+			if ($_[$i] =~ /\-(?:bg|background)/o)
+			{			
+				my $oldBg = $cw->cget($_[$i]);
+				unless ($_[$i+1] eq $oldBg)
+				{
+					#IF CHANGING BACKGROUND, MUST RESET RULE COLORS TO PREVENT 
+					#COLOR CONTRAST ILLEGABILITIES!
+					$cw->SUPER::configure($_[$i] => $_[$i+1]);
+					$cw->configure('-rules' => undef);
+					$cw->highlightPlug;
+					last;
+				}
+			}
+		}
+	}		
+	$cw->SUPER::configure(@_);	
 }
 
 sub jumpToMatchingChar  #ADDED 20060630 JWT TO CAUSE ^p TO WORK LIKE VI & SUPERTEXT - JUMP TO MATCHING CHARACTER!
@@ -51,11 +81,49 @@ sub jumpToMatchingChar  #ADDED 20060630 JWT TO CAUSE ^p TO WORK LIKE VI & SUPERT
 	if ($pm >= 0)
 	{
 		my $prevMatch = $cw->index('insert');
-		$prevMatch .= '.0'  unless ($prevMatch =~ /\./);
+		$prevMatch .= '.0'  unless ($prevMatch =~ /\./o);
 		$cw->markSet('insert', $cw->index('MyMatch'));
 		$cw->see('insert');
 		$cw->markSet('MyMatch', $prevMatch);
 	}
+}
+
+sub doShiftBackSpace
+{
+	my $cw = shift;
+	my $curPos = $cw->index('insert');
+	my $leftPos = $cw->index('insert linestart');
+	$cw->delete($leftPos, $curPos)  unless ($curPos <= $leftPos);
+}
+
+sub deleteToEndofLine
+{
+	my ($cw) = @_;
+	if ($cw->compare('insert','==','insert lineend'))
+	{
+		$cw->delete('insert')
+	}
+	else
+	{
+		$cw->delete('insert','insert lineend')
+	}
+}
+
+sub doShiftDelete
+{
+	my $cw = shift;
+	(my $curPos = $cw->index('insert')) =~ s/\..*$//o;
+	my $startPos = ($curPos > 1) ? $cw->index('insert - 1 line lineend')
+			: $cw->index('1.0');
+	my $endPos = $cw->index('insert lineend');
+	$cw->delete($startPos, $endPos); #  unless ($startPos <= $endPos);
+}
+
+sub doShiftInsert
+{
+	my $cw = shift;
+	my $insPos = $cw->index('insert lineend');
+	$cw->insert($insPos, "\n");
 }
 
 sub ClassInit   #JWT: ADDED FOR VI-LIKE Control-P JUMP TO MATCHING BRACKET FEATURE.
@@ -66,6 +134,13 @@ sub ClassInit   #JWT: ADDED FOR VI-LIKE Control-P JUMP TO MATCHING BRACKET FEATU
 
 	# reset default Tk::Text binds
 	$w->bind($class,	'<Control-p>', sub {} );
+	$w->bind($class,	'<Tab>', 'insertTab' );    #ADDED TO ALLOW INSERTION OF TABS OR SPACES!
+	$w->bind($class,	'<Alt-Tab>', 'insertTabChar' );    #ADDED TO ALLOW INSERTION OF TABS OR SPACES!
+	$w->bind($class, '<Shift-BackSpace>', 'doShiftBackSpace' );   #DOESN'T SEEM TO WORK?!?!?!
+	$w->bind($class, '<Shift-Delete>', 'doShiftDelete' );
+	$w->bind($class, '<Control-Delete>', 'deleteToEndofLine' );
+	$w->bind($class, '<Shift-Tab>', 'deleteToEndofLine' );   #DOESN'T SEEM TO WORK?!?!?!
+	$w->bind($class, '<Control-BackSpace>', 'doShiftBackSpace' );
 	return $class;
 }
 
@@ -115,6 +190,9 @@ sub delete {
 
 sub doAutoIndent {
 	my $cw = shift;
+	my $doAutoIndent = shift;
+	return  unless ($doAutoIndent);
+
 	if ($cw->cget('-autoindent')) {
 		my $i = $cw->index('insert linestart');
 		if ($cw->compare($i, ">", '0.0')) {
@@ -122,12 +200,12 @@ sub doAutoIndent {
 #			if ($s =~ /\S/)  #JWT: UNCOMMENT TO CAUSE SUBSEQUENT BLANK LINES TO NOT BE AUTOINDENTED.
 #			{
 				#$s =~ /^(\s+)/;  #CHGD. TO NEXT 20060701 JWT TO FIX "e" BEING INSERTED INTO LINE WHEN AUTOINDENT ON?!
-				$s =~ /^(\s*)/;
+				$s =~ /^(\s*)/o;
 				if ($1) {
 					$cw->insert('insert', $1);
 				}
 				$cw->insert('insert', $cw->cget('-indentchar'))
-						if ($s =~ /\{\s*$/);   #ADDED 20060701 JWT - ADD AN INDENTION IF JUST OPENED A BLOCK!
+						if ($s =~ /[\{\[\(]\s*$/o);   #ADDED 20060701 JWT - ADD AN INDENTION IF JUST OPENED A BLOCK!
 #			}
 		}
 	}
@@ -296,8 +374,8 @@ sub highlightPlugInit {
 	my $max = $rgb[0]+$rgb[1];  #TOTAL BRIGHTEST 2.
 	my $daytime = 1;
 	my $currentrules = $plug->rules;
-	if ($max <= 52500) {
-		$daytime = 0;
+	if ($max <= 52500) {   #IF BG COLOR IS DARK ENOUGH, FORCE RULES WITH NORMAL BLACK-
+		$daytime = 0;     #FOREGROUND TO WHITE TO AVOID COLOR CONTRAST ILLEGABILITIES.
 		#print "-NIGHT 65!\n";
 		for (my $k=0;$k<=$#{$currentrules};$k++)
 		{
@@ -311,6 +389,7 @@ sub highlightPlugInit {
 	{
 		if (defined($currentrules->[$k]->[2]) and $currentrules->[$k]->[2] eq $bg)
 		{
+			#RULE FOREGROUND COLOR == BACKGROUND, CHANGE TO BLACK OR WHITE TO KEEP READABLE!
 			$cw->setRule($currentrules->[$k]->[0],$currentrules->[$k]->[1],($daytime ? 'black' : 'white'));
 		}
 	};
@@ -892,6 +971,23 @@ sub addKate2ViewMenu    #ADD ALL KATE-LANGUAGES AS OPTIONS TO THE "View" MENU:
 				-menu => $nextMenu);
 		++$kateIndx  if ($kateIndx =~ /^\d/o);
 	}
+}
+
+sub insertTab
+{
+	my ($w) = @_;
+#	$w->Insert("\t");
+	$w->Insert($w->cget('-indentchar'));
+	$w->focus;
+	$w->break
+}
+
+sub insertTabChar
+{
+	my ($w) = @_;
+	$w->Insert("\t");
+	$w->focus;
+	$w->break
 }
 
 1;

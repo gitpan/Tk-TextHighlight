@@ -8,12 +8,12 @@ WriteMakefile(
 	NAME => "Tk::$pm",
 	PREREQ_PM => {
 		'Tk' => '800.024',
-		'Syntax::Highlight::Perl' => 0,
+#		'Syntax::Highlight::Perl' => 0,
 	},
 #	PMLIBDIRS => ['Tk'],
 	PM => {
-		"$pm.pm" => "$ld/$pm.pm",
-		"ROTextHighlight.pm" => "$ld/ROTextHighlight.pm",
+		"lib/Tk/$pm.pm" => "$ld/$pm.pm",
+		"lib/Tk/ROTextHighlight.pm" => "$ld/ROTextHighlight.pm",
 		"$pm/Bash.pm" => "$ld/$pm/Bash.pm",
 		"$pm/HTML.pm" => "$ld/$pm/HTML.pm",
 		"$pm/Kate.pm" => "$ld/$pm/Kate.pm",
@@ -26,11 +26,11 @@ WriteMakefile(
 		"$pm.pod" => "$ld/$pm.pod",
 		"RulesEditor.pm" => "$ld/RulesEditor.pm",
 	},
-	VERSION_FROM => "$pm.pm",
+	VERSION_FROM => "lib/Tk/$pm.pm",
 	'dist'	=> {COMPRESS => 'gzip', SUFFIX => 'gz'},
 	($] >= 5.005 ?
 		(ABSTRACT => "a TextUndo widget with syntax highlight capabilities",
-		AUTHOR	=> 'Hans Jeuken (haje@toneel.demon.nl)') : ()),
+		AUTHOR	=> 'Jim Turner (turnerjw784@yahoo.coom)') : ()),
 );
 
 1
